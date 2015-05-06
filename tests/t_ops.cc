@@ -228,6 +228,23 @@ TEST_F(OpTests, testArrayOps1Element)
     EXPECT_EQ("[]", getNewDoc(op));
 }
 
+TEST_F(OpTests, testArrayOpsNested)
+{
+    const string array("[0,[1,[2]],{\"key\":\"val\"}]");
+    SUBDOC_OP_SETDOC(op, array.c_str(), array.size());
+    subdoc_ERRORS rv;
+
+    rv = performNewOp(op, SUBDOC_CMD_DELETE, "[1][1][0]");
+    EXPECT_EQ(SUBDOC_STATUS_SUCCESS, rv);
+    EXPECT_EQ("[0,[1,[]],{\"key\":\"val\"}]", getNewDoc(op));
+
+    string array2;
+    getAssignNewDoc(op, array2);
+    rv = performNewOp(op, SUBDOC_CMD_DELETE, "[1][1]");
+    EXPECT_EQ(SUBDOC_STATUS_SUCCESS, rv);
+    EXPECT_EQ("[0,[1],{\"key\":\"val\"}]", getNewDoc(op));
+}
+
 TEST_F(OpTests, testUnique)
 {
     string json = "{}";
