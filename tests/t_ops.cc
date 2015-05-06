@@ -211,6 +211,23 @@ TEST_F(OpTests, testArrayOps2Elements)
     EXPECT_EQ("[1]", getNewDoc(op));
 }
 
+TEST_F(OpTests, testArrayOps1Element)
+{
+    // One element array. Delete last (final) element (via [0]).
+    const string array2("[1]");
+    SUBDOC_OP_SETDOC(op, array2.c_str(), array2.size());
+    subdoc_ERRORS rv;
+
+    rv = performNewOp(op, SUBDOC_CMD_DELETE, "[0]");
+    EXPECT_EQ(SUBDOC_STATUS_SUCCESS, rv);
+    EXPECT_EQ("[]", getNewDoc(op));
+
+    // Delete last element via [-1].
+    rv = performNewOp(op, SUBDOC_CMD_DELETE, "[-1]");
+    EXPECT_EQ(SUBDOC_STATUS_SUCCESS, rv);
+    EXPECT_EQ("[]", getNewDoc(op));
+}
+
 TEST_F(OpTests, testUnique)
 {
     string json = "{}";
