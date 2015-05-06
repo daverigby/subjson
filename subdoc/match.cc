@@ -151,13 +151,13 @@ push_callback(jsonsl_t jsn, jsonsl_action_t action, struct jsonsl_state_st *st,
                 m->loc_key.length = ctx->hklen+2;
 
                 // I'm not sure if it's used.
-                m->position = (st->nelem - 1) / 2;
+                m->position = (parent->nelem - 1) / 2;
             } else {
 
                 // Array doesn't have a key
                 m->has_key = 0;
                 // array[n]
-                m->position = st->nelem - 1;
+                m->position = parent->nelem - 1;
             }
 
             if (m->ensure_unique.at) {
@@ -454,7 +454,7 @@ Match::exec_match_negix(const char *value, size_t nvalue, const Path *pth,
             }
 
             /* Set the position */
-            position = num_siblings - 1;
+            position = num_siblings;
 
             last_start = loc_match.at;
             last_len = loc_match.length;
