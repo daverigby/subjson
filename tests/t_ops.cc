@@ -192,6 +192,25 @@ TEST_F(OpTests, testListOps)
     ASSERT_EQ("2", t_subdoc::getMatchString(op->match));
 }
 
+// Toplevel array with two elements.
+TEST_F(OpTests, testArrayOps2Elements)
+{
+    // Toplevel array deletions
+    const string array("[1,2]");
+    SUBDOC_OP_SETDOC(op, array.c_str(), array.size());
+    subdoc_ERRORS rv;
+
+    // Delete beginning element.
+    rv = performNewOp(op, SUBDOC_CMD_DELETE, "[0]");
+    EXPECT_EQ(SUBDOC_STATUS_SUCCESS, rv);
+    EXPECT_EQ("[2]", getNewDoc(op));
+
+    // Delete end element.
+    rv = performNewOp(op, SUBDOC_CMD_DELETE, "[1]");
+    EXPECT_EQ(SUBDOC_STATUS_SUCCESS, rv);
+    EXPECT_EQ("[1]", getNewDoc(op));
+}
+
 TEST_F(OpTests, testUnique)
 {
     string json = "{}";
