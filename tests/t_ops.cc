@@ -129,6 +129,52 @@ TEST_F(OpTests, testGenericOps)
     ASSERT_EQ("\"USA\"", t_subdoc::getMatchString(op->match));
 }
 
+TEST_F(OpTests, testReplaceArrayDeep)
+{
+    // Create an array at max level.
+    string deep;
+    for (size_t ii = 0; ii < COMPONENTS_ALLOC - 2; ii++) {
+        deep += "[";
+    }
+    deep += "1";
+    for (size_t ii = 0; ii < COMPONENTS_ALLOC - 2; ii++) {
+        deep += "]";
+    }
+    SUBDOC_OP_SETDOC(op, deep.c_str(), deep.size());
+
+    // Sanity check - should be able to access maximum depth.
+    string one_minus_max_path;
+    for (size_t ii = 0; ii < COMPONENTS_ALLOC - 3; ii++) {
+        one_minus_max_path += "[0]";
+    }
+    string max_path(one_minus_max_path + "[0]");
+    uint16_t rv = performNewOp(op, SUBDOC_CMD_GET, one_minus_max_path.c_str());
+    ASSERT_EQ(SUBDOC_STATUS_SUCCESS, rv);
+    ASSERT_EQ("[1]", t_subdoc::getMatchString(op->match));
+
+    // Should be able to replace the array element with a different one.
+    rv = performNewOp(op, SUBDOC_CMD_REPLACE, max_path.c_str(), "2");
+    EXPECT_EQ(SUBDOC_STATUS_SUCCESS, rv);
+    string newdoc;
+    getAssignNewDoc(op, newdoc);
+    rv = performNewOp(op, SUBDOC_CMD_GET, one_minus_max_path.c_str());
+    EXPECT_EQ(SUBDOC_STATUS_SUCCESS, rv);
+    EXPECT_EQ("[2]", t_subdoc::getMatchString(op->match));
+
+    // Should be able to replace the last level array with a different
+    // (larger) one.
+    rv = performNewOp(op, SUBDOC_CMD_REPLACE, one_minus_max_path.c_str(), "[3,4]");
+    EXPECT_EQ(SUBDOC_STATUS_SUCCESS, rv);
+    getAssignNewDoc(op, newdoc);
+    rv = performNewOp(op, SUBDOC_CMD_GET, one_minus_max_path.c_str());
+    EXPECT_EQ(SUBDOC_STATUS_SUCCESS, rv);
+    EXPECT_EQ("[3,4]", t_subdoc::getMatchString(op->match));
+
+    // Should not be able to make it any deeper (already at maximum).
+    rv = performNewOp(op, SUBDOC_CMD_REPLACE, one_minus_max_path.c_str(), "[[5]]");
+    EXPECT_EQ(SUBDOC_STATUS_DOC_ETOODEEP, rv);
+}
+
 TEST_F(OpTests, testListOps)
 {
     string doc = "{}";
